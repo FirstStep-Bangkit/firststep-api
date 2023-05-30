@@ -1,13 +1,14 @@
 runtime: python39
 
+instance_class: F2
+
 env_variables:
-  SQLALCHEMY_DATABASE_URI: sqlite:///db.sqlite
+  MYSQL_HOST: '<mysql_host>'
+  MYSQL_USER: '<mysql_user>'
+  MYSQL_PASSWORD: '<mysql_password>'
+  MYSQL_DB: '<mysql_database>'
+  SECRET_KEY: 'bangkit'
 
 handlers:
-  - url: /.*
-    script: auto
-
-automatic_scaling:
-  target_cpu_utilization: 0.65
-  min_instances: 1
-  max_instances: 10
+- url: /api/.*
+  script: auto
