@@ -12,7 +12,7 @@ api = Api(app)
 CORS(app)
 
 # Konfigurasi database
-app.config['MYSQL_HOST'] = '%'
+app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = ''
 app.config['MYSQL_DB'] = 'userdb'
@@ -28,6 +28,24 @@ mysql = mysql.connector.connect(
 
 # Membuat cursor
 cursor = mysql.cursor(dictionary=True)
+
+# Perintah untuk membuat tabel auth_model
+create_table_query = """
+CREATE TABLE IF NOT EXISTS auth_model (
+    username VARCHAR(50) NOT NULL,
+    frontName VARCHAR(50),
+    lastName VARCHAR(50),
+    email VARCHAR(100) NOT NULL,
+    password VARCHAR(100) NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)
+"""
+# Commit perubahan ke database
+mysql.commit()
+
+# Menjalankan perintah pembuatan tabel
+cursor.execute(create_table_query)
 
 # Model database untuk authentication login register
 class AuthModel:
@@ -98,7 +116,13 @@ class RegisterUser(Resource):
                 return make_response(jsonify({"error": True, "msg": "Email sudah digunakan"}), 400)
 
             cursor.execute("SELECT COUNT(*) FROM auth_model")
-            user_count = cursor.fetchone()[0]
+            result = cursor.fetchone()
+
+            if result and len(result) > 0:
+                user_count = result['COUNT(*)']
+            else:
+                user_count = 0
+
 
             default_status = "user"
             username = f"{default_status}{user_count+1}{datetime.datetime.now().strftime('%Y%m%d')}"
@@ -131,7 +155,7 @@ class LoginUser(Resource):
                 login_result = {
                     "username": user['username'],
                     "email": dataEmail,
-                    "token": token.decode('utf-8')
+                    "token": token
                 }
 
                 if user['frontName'] and user['lastName']:
