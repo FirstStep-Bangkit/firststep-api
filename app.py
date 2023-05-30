@@ -184,7 +184,7 @@ api.add_resource(RegisterUser, "/api/register", methods=["POST"])
 api.add_resource(LoginUser, "/api/login", methods=["POST"] )
 api.add_resource(Dashboard, "/api/dashboard", methods=["GET"])
 api.add_resource(Survey, "/api/survey", methods=["GET"])
-api.add_resource(DeleteUser, "/api/users/<string:username>", methods=["DELETE"])
+api.add_resource(DeleteUser, "/api/deleteuser/<string:username>", methods=["DELETE"])
 
 #jalankan aplikasi app.py
 if __name__ == "__main__":
