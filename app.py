@@ -12,7 +12,7 @@ api = Api(app)
 CORS(app)
 
 # Konfigurasi database
-app.config['MYSQL_HOST'] = 'localhost'
+app.config['MYSQL_HOST'] = '%'
 app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = ''
 app.config['MYSQL_DB'] = 'userdb'
@@ -202,4 +202,4 @@ api.add_resource(Survey, "/api/survey", methods=["GET"])
 api.add_resource(DeleteUser, "/api/deleteuser/<string:username>", methods=["DELETE"])
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()

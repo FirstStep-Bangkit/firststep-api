@@ -1,14 +1,20 @@
 runtime: python39
-
-instance_class: F2
+entrypoint: gunicorn -b :$port main:app
 
 env_variables:
-  MYSQL_HOST: '<mysql_host>'
-  MYSQL_USER: '<mysql_user>'
-  MYSQL_PASSWORD: '<mysql_password>'
-  MYSQL_DB: '<mysql_database>'
+  MYSQL_HOST: '%'
+  MYSQL_USER: 'root'
+  MYSQL_PASSWORD: ''
+  MYSQL_DB: 'userdb'
   SECRET_KEY: 'bangkit'
 
 handlers:
 - url: /api/.*
   script: auto
+
+- url: /.*
+  static_files: static/index.html
+  upload: static/index.html
+
+- url: /static
+  static_dir: static
