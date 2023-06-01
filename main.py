@@ -11,12 +11,19 @@ app = Flask(__name__)
 api = Api(app)
 CORS(app)
 
+# Mengambil credential
+MYSQL_HOST = os.environ.get('_MYSQL_HOST')
+MYSQL_USER = os.environ.get('_MYSQL_USER')
+MYSQL_PASSWORD = os.environ.get('_MYSQL_PASSWORD')
+MYSQL_DB = os.environ.get('_MYSQL_DB')
+SECRET_KEY = os.environ.get('_SECRET_KEY')
+
 # Konfigurasi database
-app.config['MYSQL_HOST'] = '%'
-app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = ''
-app.config['MYSQL_DB'] = 'userdb'
-app.config['SECRET_KEY'] = 'bangkit'
+app.config['MYSQL_HOST'] = MYSQL_HOST
+app.config['MYSQL_USER'] = MYSQL_USER
+app.config['MYSQL_PASSWORD'] = MYSQL_PASSWORD
+app.config['MYSQL_DB'] = MYSQL_DB
+app.config['SECRET_KEY'] = SECRET_KEY
 
 # Inisialisasi objek MySQL
 mysql = mysql.connector.connect(
