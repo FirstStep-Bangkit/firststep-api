@@ -12,6 +12,7 @@ api = Api(app)
 CORS(app)
 
 # Mengambil credential
+
 MYSQL_HOST = os.environ.get('_MYSQL_HOST')
 MYSQL_USER = os.environ.get('_MYSQL_USER')
 MYSQL_PASSWORD = os.environ.get('_MYSQL_PASSWORD')
