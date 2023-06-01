@@ -30,4 +30,5 @@ steps:
       - --platform
       - managed
       - --allow-unauthenticated
-      - --port 8080
+      - --port
+      - "8080"
