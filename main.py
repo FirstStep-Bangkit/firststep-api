@@ -13,12 +13,11 @@ CORS(app)
 
 # Mengambil credential
 
-MYSQL_HOST = os.environ.get('_MYSQL_HOST')
-MYSQL_USER = os.environ.get('_MYSQL_USER')
-MYSQL_PASSWORD = os.environ.get('_MYSQL_PASSWORD')
-MYSQL_DB = os.environ.get('_MYSQL_DB')
-SECRET_KEY = os.environ.get('_SECRET_KEY')
-MYSQL_PORT = os.environ.get('_MYSQL_PORT')
+MYSQL_HOST = os.environ.get('MYSQL_HOST')
+MYSQL_USER = os.environ.get('MYSQL_USER')
+MYSQL_PASSWORD = os.environ.get('MYSQL_PASSWORD')
+MYSQL_DB = os.environ.get('MYSQL_DB')
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # Konfigurasi database
 app.config['MYSQL_HOST'] = MYSQL_HOST
@@ -26,7 +25,6 @@ app.config['MYSQL_USER'] = MYSQL_USER
 app.config['MYSQL_PASSWORD'] = MYSQL_PASSWORD
 app.config['MYSQL_DB'] = MYSQL_DB
 app.config['SECRET_KEY'] = SECRET_KEY
-app.config['MYSQL_PORT'] = MYSQL_PORT
 
 # Inisialisasi objek MySQL
 mysql = mysql.connector.connect(
@@ -34,7 +32,6 @@ mysql = mysql.connector.connect(
     user=app.config['MYSQL_USER'],
     password=app.config['MYSQL_PASSWORD'],
     database=app.config['MYSQL_DB']
-    port=app.config['MYSQL_PORT']
 )
 
 # Membuat cursor
@@ -213,4 +210,4 @@ api.add_resource(Survey, "/api/survey", methods=["GET"])
 api.add_resource(DeleteUser, "/api/deleteuser/<string:username>", methods=["DELETE"])
 
 if __name__ == "__main__":
-    app.run()
+    app.run(port=5000)
