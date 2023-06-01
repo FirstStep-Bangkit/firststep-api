@@ -11,20 +11,20 @@ steps:
     args:
       - build
       - -t
-      - gcr.io/${PROJECT_ID}/${REPO_NAME}-${APP_NAME}:${SHORT_SHA}
+      - gcr.io/${PROJECT_ID}/${REPO_NAME}-${NAME_APP}:${SHORT_SHA}
       - .
   - name: gcr.io/cloud-builders/docker
     args:
       - push
-      - gcr.io/${PROJECT_ID}/${REPO_NAME}-${APP_NAME}:${SHORT_SHA}
+      - gcr.io/${PROJECT_ID}/${REPO_NAME}-${NAME_APP}:${SHORT_SHA}
   - name: google/cloud-sdk
     args:
       - gcloud
       - run
       - deploy
-      - ${APP_NAME}
+      - ${NAME_APP}
       - --image
-      - gcr.io/${PROJECT_ID}/${REPO_NAME}-${APP_NAME}:${SHORT_SHA}
+      - gcr.io/${PROJECT_ID}/${REPO_NAME}-${NAME_APP}:${SHORT_SHA}
       - --region
       - asia-southeast2
       - --platform
