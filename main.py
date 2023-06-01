@@ -18,6 +18,7 @@ MYSQL_USER = os.environ.get('_MYSQL_USER')
 MYSQL_PASSWORD = os.environ.get('_MYSQL_PASSWORD')
 MYSQL_DB = os.environ.get('_MYSQL_DB')
 SECRET_KEY = os.environ.get('_SECRET_KEY')
+MYSQL_PORT = os.environ.get('_MYSQL_PORT')
 
 # Konfigurasi database
 app.config['MYSQL_HOST'] = MYSQL_HOST
@@ -25,6 +26,7 @@ app.config['MYSQL_USER'] = MYSQL_USER
 app.config['MYSQL_PASSWORD'] = MYSQL_PASSWORD
 app.config['MYSQL_DB'] = MYSQL_DB
 app.config['SECRET_KEY'] = SECRET_KEY
+app.config['MYSQL_PORT'] = MYSQL_PORT
 
 # Inisialisasi objek MySQL
 mysql = mysql.connector.connect(
@@ -32,6 +34,7 @@ mysql = mysql.connector.connect(
     user=app.config['MYSQL_USER'],
     password=app.config['MYSQL_PASSWORD'],
     database=app.config['MYSQL_DB']
+    port=app.config['MYSQL_PORT']
 )
 
 # Membuat cursor
