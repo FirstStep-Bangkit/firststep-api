@@ -29,4 +29,4 @@ steps:
       - asia-southeast2
       - --platform
       - managed
-      - allow-unauthenticated
+      - --allow-unauthenticated
