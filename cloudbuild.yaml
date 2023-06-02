@@ -30,3 +30,5 @@ steps:
       - --platform
       - managed
       - --allow-unauthenticated
+      - --port
+      - "5000"
