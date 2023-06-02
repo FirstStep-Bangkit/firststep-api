@@ -1,4 +1,3 @@
----
 steps:
   - name: python
     entrypoint: pip3
@@ -30,5 +29,10 @@ steps:
       - --platform
       - managed
       - --allow-unauthenticated
+      - --container-concurrency=80
+      - --timeout=300s
+      - --port=8080
+      - --memory=256Mi
+      - --cpu=1000m
       - --port
       - "5000"
