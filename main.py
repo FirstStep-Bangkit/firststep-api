@@ -210,4 +210,4 @@ api.add_resource(Survey, "/api/survey", methods=["GET"])
 api.add_resource(DeleteUser, "/api/deleteuser/<string:username>", methods=["DELETE"])
 
 if __name__ == "__main__":
-    app.run(port=5000)
+    app.run(port=int(os.environ.get("PORT", 5000)),host='0.0.0.0',debug=True)
