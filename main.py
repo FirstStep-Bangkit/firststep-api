@@ -189,6 +189,30 @@ class Survey(Resource):
     @token_required
     def get(self):
         return jsonify({"msg": "ini adalah halaman survey / butuh login"})
+    
+class ChangePassword(Resource):
+    @token_required
+    def post(self):
+        current_user = get_current_user()
+        dataCurrentPassword = request.form.get('currentPassword')
+        dataNewPassword = request.form.get('newPassword')
+
+        if not dataCurrentPassword or not dataNewPassword:
+            return make_response(jsonify({"error": True, "msg": "Password tidak boleh kosong"}), 400)
+
+        # Periksa apakah password saat ini sesuai dengan yang tersimpan dalam basis data
+        cursor.execute("SELECT * FROM auth_model WHERE email = %s", (current_user.email,))
+        user = cursor.fetchone()
+
+        if user and user['password'] == dataCurrentPassword:
+            # Update password baru dalam basis data
+            cursor.execute("UPDATE auth_model SET password = %s WHERE email = %s", (dataNewPassword, current_user.email))
+            mysql.commit()
+
+            return make_response(jsonify({"error": False, "msg": "Password berhasil diubah"}), 200)
+        else:
+            return make_response(jsonify({"error": True, "msg": "Password saat ini tidak valid"}), 401)
+
 
 class DeleteUser(Resource):
     @token_required
@@ -208,6 +232,7 @@ api.add_resource(LoginUser, "/api/login", methods=["POST"])
 api.add_resource(Dashboard, "/api/dashboard", methods=["GET"])
 api.add_resource(Survey, "/api/survey", methods=["GET"])
 api.add_resource(DeleteUser, "/api/deleteuser/<string:username>", methods=["DELETE"])
+api.add_resource(ChangePassword, "/api/changepassword", methods=["POST"])
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
