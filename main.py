@@ -70,13 +70,16 @@ class AuthModel:
 def token_required(f):
     @wraps(f)
     def decorator(*args, **kwargs):
-        token = request.args.get('token')
+        token = request.headers.get('Authorization')
 
         if not token:
-            return make_response(jsonify({"msg": "token tidak ada"}), 404)
+            return make_response(jsonify({"msg": "Token tidak ada"}), 401)
 
         try:
-            output = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
+            # Memisahkan token dari string "Bearer [token]"
+            _, token_value = token.split(' ')
+            output = jwt.decode(token_value, app.config['SECRET_KEY'], algorithms=["HS256"])
+
         except:
             return make_response(jsonify({"msg": "token invalid"}), 401)
         return f(*args, **kwargs)
