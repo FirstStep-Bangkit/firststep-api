@@ -191,7 +191,9 @@ class LoginUser(Resource):
 class Dashboard(Resource):
     @token_required
     def get(self):
-        return jsonify({"msg": "ini adalah halaman dashboard / butuh login"})
+        current_user = get_current_user()
+        name = current_user.frontName + ' ' + current_user.lastName if current_user.frontName and current_user.lastName else current_user.username
+        return jsonify({"Nama": name})
 
 class Survey(Resource):
     @token_required
