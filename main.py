@@ -87,9 +87,11 @@ def token_required(f):
 
 # Fungsi untuk mendapatkan informasi pengguna yang saat ini login
 def get_current_user():
-    token = request.args.get('token')
+    token = request.headers.get('Authorization')
 
     try:
+         # Memisahkan token dari string "Bearer [token]"
+        _, token_value = token.split(' ')
         payload = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
         email = payload["email"]
 
