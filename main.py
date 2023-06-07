@@ -193,7 +193,10 @@ class Dashboard(Resource):
     def get(self):
         current_user = get_current_user()
         name = current_user.frontName + ' ' + current_user.lastName if current_user.frontName and current_user.lastName else current_user.username
-        return jsonify({"Nama": name})
+        return jsonify({
+            "name": name,
+            "profilePicture": None
+        })
 
 class Survey(Resource):
     @token_required
