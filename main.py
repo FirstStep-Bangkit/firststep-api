@@ -73,14 +73,18 @@ def token_required(f):
         token = request.headers.get('Authorization')
 
         if not token:
-            return make_response(jsonify({"msg": "token tidak ada"}), 404)
+            return make_response(jsonify({
+                "error": True,
+                "msg": "token tidak ada"}), 404)
 
         try:
             # Memisahkan token dari string "Bearer [token]"
             _, token_value = token.split(' ')
             output = jwt.decode(token_value, app.config['SECRET_KEY'], algorithms=["HS256"])
         except jwt.DecodeError:
-            return make_response(jsonify({"msg": "Token invalid"}), 401)
+            return make_response(jsonify({
+                "error": True,
+                "msg": "Token invalid"}), 401)
 
         return f(*args, **kwargs)
     return decorator
@@ -90,7 +94,9 @@ def get_current_user():
     token = request.headers.get('Authorization')
 
     if not token:
-        return make_response(jsonify({"msg": "token tidak ada"}), 404)
+        return make_response(jsonify({
+            "error": True,
+            "msg": "token tidak ada"}), 404)
 
     try:
         # Memisahkan token dari string "Bearer [token]"
@@ -129,7 +135,9 @@ class RegisterUser(Resource):
             user = cursor.fetchone()
 
             if user:
-                return make_response(jsonify({"error": True, "msg": "Email sudah digunakan"}), 400)
+                return make_response(jsonify({
+                    "error": True,
+                    "msg": "Email sudah digunakan"}), 400)
 
             cursor.execute("SELECT COUNT(*) FROM auth_model")
             result = cursor.fetchone()
@@ -148,9 +156,13 @@ class RegisterUser(Resource):
             cursor.execute("INSERT INTO auth_model (username, frontName, lastName, email, password, status, created_at) VALUES (%s, %s, %s, %s, %s, %s, %s)", (username, dataFrontName, dataLastName, dataEmail, dataPassword, default_status, created_at))
             mysql.commit()
 
-            return make_response(jsonify({"error": False, "msg": "Registrasi Berhasil"}), 200)
+            return make_response(jsonify({
+                "error": False,
+                "msg": "Registrasi Berhasil"}), 200)
 
-        return make_response(jsonify({"error": True, "msg": "Email atau Password tidak boleh kosong"}), 400)
+        return make_response(jsonify({
+            "error": True,
+            "msg": "Email atau Password tidak boleh kosong"}), 400)
 
 class LoginUser(Resource):
     def post(self):
@@ -179,13 +191,13 @@ class LoginUser(Resource):
 
                 return jsonify({
                     "error": False,
-                    "message": "success",
+                    "msg": "success",
                     "loginResult": login_result
                 })
 
         return jsonify({
             "error": True,
-            "message": "Login gagal, silahkan coba lagi !!!"
+            "msg": "Login gagal, silahkan coba lagi !!!"
         })
 
 class Dashboard(Resource):
@@ -193,10 +205,24 @@ class Dashboard(Resource):
     def get(self):
         current_user = get_current_user()
         name = current_user.frontName + ' ' + current_user.lastName if current_user.frontName and current_user.lastName else current_user.username
-        return jsonify({
-            "name": name,
-            "profilePicture": None
-        })
+
+        try:
+            dashboard_result = {
+                "name": name,
+                "profilePicture": None
+            }
+
+            return jsonify({
+                "error": False,
+                "msg": "dashboard sukses",
+                "dashboardResult": dashboard_result
+            })
+        except:
+            return jsonify({
+                "error": True,
+                "msg": "dashboard gagal"
+            })
+
 
 class Survey(Resource):
     @token_required
@@ -211,7 +237,9 @@ class ChangePassword(Resource):
         dataNewPassword = request.form.get('newPassword')
 
         if not dataCurrentPassword or not dataNewPassword:
-            return make_response(jsonify({"error": True, "msg": "Password tidak boleh kosong"}), 400)
+            return make_response(jsonify({
+                "error": True,
+                "msg": "Password tidak boleh kosong"}), 400)
 
         # Periksa apakah password saat ini sesuai dengan yang tersimpan dalam basis data
         cursor.execute("SELECT * FROM auth_model WHERE email = %s", (current_user.email,))
@@ -222,9 +250,13 @@ class ChangePassword(Resource):
             cursor.execute("UPDATE auth_model SET password = %s WHERE email = %s", (dataNewPassword, current_user.email))
             mysql.commit()
 
-            return make_response(jsonify({"error": False, "msg": "Password berhasil diubah"}), 200)
+            return make_response(jsonify({
+                "error": False,
+                "msg": "Password berhasil diubah"}), 200)
         else:
-            return make_response(jsonify({"error": True, "msg": "Password saat ini tidak valid"}), 401)
+            return make_response(jsonify({
+                "error": True,
+                "msg": "Password saat ini tidak valid"}), 401)
 
 
 class DeleteUser(Resource):
@@ -236,9 +268,14 @@ class DeleteUser(Resource):
             cursor.execute("DELETE FROM auth_model WHERE username = %s", (username,))
             mysql.commit()
 
-            return jsonify({"message": "User berhasil dihapus"})
+            return jsonify({
+                "error": False,
+                "message": "User berhasil dihapus"
+                })
 
-        return jsonify({"error": True, "message": "Anda tidak memiliki izin untuk menghapus pengguna ini"})
+        return jsonify({
+            "error": True,
+            "message": "Anda tidak memiliki izin untuk menghapus pengguna ini"})
 
 api.add_resource(RegisterUser, "/api/register", methods=["POST"])
 api.add_resource(LoginUser, "/api/login", methods=["POST"])
