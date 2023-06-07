@@ -89,10 +89,13 @@ def token_required(f):
 def get_current_user():
     token = request.headers.get('Authorization')
 
+    if not token:
+        return make_response(jsonify({"msg": "token tidak ada"}), 404)
+
     try:
-         # Memisahkan token dari string "Bearer [token]"
+        # Memisahkan token dari string "Bearer [token]"
         _, token_value = token.split(' ')
-        payload = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
+        payload = jwt.decode(token_value, app.config['SECRET_KEY'], algorithms=["HS256"])
         email = payload["email"]
 
         cursor.execute("SELECT * FROM auth_model WHERE email = %s", (email,))
@@ -111,7 +114,7 @@ def get_current_user():
             return current_user
         else:
             return None
-    except:
+    except jwt.DecodeError:
         return None
 
 class RegisterUser(Resource):
