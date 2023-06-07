@@ -73,16 +73,12 @@ def token_required(f):
         token = request.args.get('token')
 
         if not token:
-            return make_response(jsonify({"msg": "Token tidak ada"}), 401)
+            return make_response(jsonify({"msg": "token tidak ada"}), 404)
 
         try:
             output = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
         except:
-            return make_response(jsonify({"msg": "Token invalid"}), 401)
-
-        # Mengubah token menjadi Bearer token
-        request.headers['Authorization'] = f"Bearer {token}"
-
+            return make_response(jsonify({"msg": "token invalid"}), 401)
         return f(*args, **kwargs)
     return decorator
 
