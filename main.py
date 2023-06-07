@@ -79,7 +79,11 @@ def token_required(f):
             output = jwt.decode(Token, app.config['SECRET_KEY'], algorithms=["HS256"])
         except:
             return make_response(jsonify({"msg": "token invalid"}), 401)
+        
+        # Mengubah token menjadi Bearer token
+        request.headers['Authorization'] = f"Bearer {Token}"
         return f(*args, **kwargs)
+    
     return decorator
 
 # Fungsi untuk mendapatkan informasi pengguna yang saat ini login
