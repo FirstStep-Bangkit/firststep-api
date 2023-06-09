@@ -223,6 +223,31 @@ class Dashboard(Resource):
                 "msg": "dashboard gagal"
             })
 
+class Profile(Resource):
+    @token_required
+    def get(self):
+        current_user = get_current_user()
+        name = current_user.frontName + ' ' + current_user.lastName if current_user.frontName and current_user.lastName else current_user.username
+
+        try:
+            profile_result = {
+                "name": name,
+                "profilePicture": None,
+                "status": current_user.status,
+                "MBTI": None
+            }
+
+            return jsonify({
+                "error": False,
+                "msg": "Profile berhasil",
+                "profileResult": profile_result
+            })
+        except:
+            return jsonify({
+                "error": True,
+                "msg": "Profile gagal"
+            })
+
 
 class Survey(Resource):
     @token_required
@@ -280,6 +305,7 @@ class DeleteUser(Resource):
 api.add_resource(RegisterUser, "/api/register", methods=["POST"])
 api.add_resource(LoginUser, "/api/login", methods=["POST"])
 api.add_resource(Dashboard, "/api/dashboard", methods=["GET"])
+api.add_resource(Profile, "/api/profile", methods=["GET"])
 api.add_resource(Survey, "/api/survey", methods=["GET"])
 api.add_resource(DeleteUser, "/api/deleteuser/<string:username>", methods=["DELETE"])
 api.add_resource(ChangePassword, "/api/changepassword", methods=["POST"])
