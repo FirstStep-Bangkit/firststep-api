@@ -148,7 +148,7 @@ class RegisterUser(Resource):
                 user_count = 0
 
 
-            default_status = "user"
+            default_status = "User"
             username = f"{default_status}{user_count+1}{datetime.datetime.now().strftime('%Y%m%d')}"
 
             created_at = datetime.datetime.utcnow()
