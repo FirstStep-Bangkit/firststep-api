@@ -231,6 +231,7 @@ class Profile(Resource):
 
         try:
             profile_result = {
+                "username": current_user.username,
                 "name": name,
                 "profilePicture": None,
                 "status": current_user.status,
