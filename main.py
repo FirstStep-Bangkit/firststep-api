@@ -188,6 +188,8 @@ class LoginUser(Resource):
 
                 if user['frontName'] and user['lastName']:
                     login_result["name"] = f"{user['frontName']} {user['lastName']}"
+                elif user['frontName']:
+                    login_result["name"] = user['frontName']
 
                 return jsonify({
                     "error": False,
@@ -200,11 +202,16 @@ class LoginUser(Resource):
             "msg": "Login gagal, silahkan coba lagi !!!"
         })
 
+
 class Dashboard(Resource):
     @token_required
     def get(self):
         current_user = get_current_user()
-        name = current_user.frontName + ' ' + current_user.lastName if current_user.frontName and current_user.lastName else current_user.username
+        
+        if current_user.frontName and current_user.lastName:
+            name = f"{current_user.frontName} {current_user.lastName}"
+        elif current_user.frontName:
+            name = current_user.frontName
 
         try:
             dashboard_result = {
@@ -223,11 +230,16 @@ class Dashboard(Resource):
                 "msg": "dashboard gagal"
             })
 
+
 class Profile(Resource):
     @token_required
     def get(self):
         current_user = get_current_user()
-        name = current_user.frontName + ' ' + current_user.lastName if current_user.frontName and current_user.lastName else current_user.username
+        
+        if current_user.frontName and current_user.lastName:
+            name = f"{current_user.frontName} {current_user.lastName}"
+        elif current_user.frontName:
+            name = current_user.frontName
 
         try:
             profile_result = {
