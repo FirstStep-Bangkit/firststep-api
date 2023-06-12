@@ -6,6 +6,8 @@ import jwt
 import os
 import datetime
 from functools import wraps
+import numpy as np
+import tensorflow as tf
 
 app = Flask(__name__)
 api = Api(app)
@@ -46,7 +48,8 @@ CREATE TABLE IF NOT EXISTS auth_model (
     email VARCHAR(100) NOT NULL,
     password VARCHAR(100) NOT NULL,
     status VARCHAR(50) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    mbti varchar(50)
 )
 """
 # Commit perubahan ke database
@@ -57,7 +60,7 @@ cursor.execute(create_table_query)
 
 # Model database untuk authentication login register
 class AuthModel:
-    def __init__(self, username, frontName, lastName, email, password, status, created_at):
+    def __init__(self, username, frontName, lastName, email, password, status, created_at, mbti):
         self.username = username
         self.frontName = frontName
         self.lastName = lastName
@@ -65,6 +68,17 @@ class AuthModel:
         self.password = password
         self.status = status
         self.created_at = created_at
+        self.mbti = mbti
+
+# Load the TensorFlow Lite model
+interpreter = tf.lite.Interpreter(model_path='model(1).tflite')
+interpreter.allocate_tensors()
+input_details = interpreter.get_input_details()
+output_details = interpreter.get_output_details()
+
+# Define class labels
+class_labels = ['ESTJ', 'ENTJ', 'ESFJ', 'ENFJ', 'ISTJ', 'ISFJ', 'INTJ', 'INFJ', 'ESTP', 'ESFP', 'ENTP', 'ENFP', 'ISTP', 'ISFP', 'INTP', 'INFP']
+
 
 # Decorator untuk kunci endpoint / authentication
 def token_required(f):
@@ -115,7 +129,8 @@ def get_current_user():
                 user['email'],
                 user['password'],
                 user['status'],
-                user['created_at']
+                user['created_at'],
+                user['mbti']
             )
             return current_user
         else:
@@ -242,12 +257,17 @@ class Profile(Resource):
             name = current_user.frontName
 
         try:
+            if current_user.mbti:  # Cek apakah pengguna memiliki nilai mbti
+                mbti = current_user.mbti
+            else:
+                mbti = None
+
             profile_result = {
                 "username": current_user.username,
                 "name": name,
                 "profilePicture": None,
                 "status": current_user.status,
-                "MBTI": None
+                "mbti": mbti  # Menggunakan variabel mbti yang ditentukan di atas
             }
 
             return jsonify({
@@ -296,7 +316,6 @@ class ChangePassword(Resource):
                 "error": True,
                 "msg": "Password saat ini tidak valid"}), 401)
 
-
 class DeleteUser(Resource):
     @token_required
     def delete(self, username):
@@ -315,6 +334,68 @@ class DeleteUser(Resource):
             "error": True,
             "message": "Anda tidak memiliki izin untuk menghapus pengguna ini"})
 
+class Predict(Resource):
+    @token_required
+    def post(self):
+        current_user = get_current_user()
+        try:
+            # Get the input data
+            data = request.json
+            input_data = np.array(data['input']).astype(np.float32)  # Convert to FLOAT32
+
+            # Check if input length matches the expected length
+            if len(input_data) != 60:
+                return jsonify({'error': 'Jawaban harus berisi 60'}), 400
+
+            # Reshape input data
+            input_data = np.reshape(input_data, (1, 60))
+
+            # Set the input tensor
+            interpreter.set_tensor(input_details[0]['index'], input_data)
+
+            # Run inference
+            interpreter.invoke()
+
+            # Get the output tensor
+            output_data = interpreter.get_tensor(output_details[0]['index'])
+            predicted_class = int(np.argmax(output_data))  # Convert to int
+
+            # Get the predicted label
+            predicted_label = class_labels[predicted_class]
+
+            # Update the current user's MBTI
+            current_user = get_current_user()
+            current_user.mbti = predicted_label
+
+            # Save the predicted label to auth_model table
+            cursor.execute("UPDATE auth_model SET mbti = %s WHERE email = %s", (predicted_label, current_user.email))
+            mysql.commit()
+
+            # Prepare the response
+            response = {
+                'predicted_class': predicted_class,
+                'predicted_label': predicted_label
+            }
+
+            return jsonify(response)
+
+        except Exception as e:
+            return jsonify({'error': str(e)}), 400
+        
+class Question(Resource):
+    @token_required
+    def get(self):
+        cursor.execute("SELECT question_text FROM questions")
+        questions = cursor.fetchall()
+        
+        question_texts = [question['question_text'] for question in questions]
+        
+        return jsonify({
+            "error": False,
+            "msg": "success",
+            "questions": question_texts
+        })
+
 api.add_resource(RegisterUser, "/api/register", methods=["POST"])
 api.add_resource(LoginUser, "/api/login", methods=["POST"])
 api.add_resource(Dashboard, "/api/dashboard", methods=["GET"])
@@ -322,6 +403,8 @@ api.add_resource(Profile, "/api/profile", methods=["GET"])
 api.add_resource(Survey, "/api/survey", methods=["GET"])
 api.add_resource(DeleteUser, "/api/deleteuser/<string:username>", methods=["DELETE"])
 api.add_resource(ChangePassword, "/api/changepassword", methods=["POST"])
+api.add_resource(Predict, "/api/predict")  
+api.add_resource(Question, "/api/questions", methods=["GET"])
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
