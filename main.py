@@ -282,11 +282,6 @@ class Profile(Resource):
             })
 
 
-class Survey(Resource):
-    @token_required
-    def get(self):
-        return jsonify({"msg": "ini adalah halaman survey / butuh login"})
-    
 class ChangePassword(Resource):
     @token_required
     def post(self):
