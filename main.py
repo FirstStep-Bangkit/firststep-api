@@ -391,6 +391,26 @@ class Question(Resource):
             "questions": question_texts
         })
 
+class Personality(Resource):
+    @token_required
+    def get(self):
+        current_user = get_current_user()
+        if current_user.mbti:
+            cursor.execute("SELECT * FROM personality WHERE mbti = %s", (current_user.mbti,))
+            result = cursor.fetchone()
+            if result:
+                response = {
+                    'mbti': result['mbti'],
+                    'acronym': result['acronym'],
+                    'description': result['description'],
+                    'job': result['job']
+                }
+                return jsonify(response)
+            else:
+                return jsonify({'error': 'Data tidak ditemukan'}), 404
+        else:
+            return jsonify({'error': 'Pengguna tidak memiliki nilai mbti'}), 400
+
 api.add_resource(RegisterUser, "/api/register", methods=["POST"])
 api.add_resource(LoginUser, "/api/login", methods=["POST"])
 api.add_resource(Dashboard, "/api/dashboard", methods=["GET"])
@@ -399,6 +419,7 @@ api.add_resource(DeleteUser, "/api/deleteuser/<string:username>", methods=["DELE
 api.add_resource(ChangePassword, "/api/changepassword", methods=["POST"])
 api.add_resource(Predict, "/api/predict")  
 api.add_resource(Question, "/api/questions", methods=["GET"])
+api.add_resource(Personality, "/api/personality", methods=["GET"])
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
