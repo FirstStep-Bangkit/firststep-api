@@ -21,4 +21,5 @@ COPY . .
 EXPOSE 5000
 ENV PORT 5000
 
+
 CMD exec gunicorn --bind :$PORT main:app --workers 1 --threads 1
