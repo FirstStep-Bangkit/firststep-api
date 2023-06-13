@@ -535,7 +535,7 @@ class DeletePhoto(Resource):
 
         return jsonify({
             'error': False,
-            'message': 'User saat ini tidak mempunyai foto profil'
+            'message': 'Foto profil berhasil dihapus'
         })
 
 api.add_resource(RegisterUser, "/api/register", methods=["POST"])
