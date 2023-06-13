@@ -29,7 +29,7 @@ MYSQL_PASSWORD = os.environ.get('MYSQL_PASSWORD')
 MYSQL_DB = os.environ.get('MYSQL_DB')
 SECRET_KEY = os.environ.get('SECRET_KEY')
 GCS_BUCKET_NAME = os.environ.get('GCS_BUCKET_NAME')
-SIGNED_URL = os.environ.get('SIGNED_URL')
+#SIGNED_URL = os.environ.get('SIGNED_URL')
 
 # Konfigurasi database
 app.config['MYSQL_HOST'] = MYSQL_HOST
@@ -38,7 +38,7 @@ app.config['MYSQL_PASSWORD'] = MYSQL_PASSWORD
 app.config['MYSQL_DB'] = MYSQL_DB
 app.config['SECRET_KEY'] = SECRET_KEY
 app.config['GCS_BUCKET_NAME'] = GCS_BUCKET_NAME
-app.config['SIGNED_URL'] = SIGNED_URL
+#app.config['SIGNED_URL'] = SIGNED_URL
 
 # Inisialisasi objek MySQL
 mysql = mysql.connector.connect(
@@ -97,7 +97,7 @@ output_details = interpreter.get_output_details()
 class_labels = ['ESTJ', 'ENTJ', 'ESFJ', 'ENFJ', 'ISTJ', 'ISFJ', 'INTJ', 'INFJ', 'ESTP', 'ESFP', 'ENTP', 'ENFP', 'ISTP', 'ISFP', 'INTP', 'INFP']
 
 # Dapatkan signed URL untuk file JSON kredensial di Cloud Storage bucket
-signed_url = app.config['SIGNED_URL']
+signed_url = 'https://storage.googleapis.com/firststep-admin/capstone-project-387211-3591687ddf13.json'
 
 # Unduh file JSON kredensial menggunakan signed URL
 response = requests.get(signed_url)
