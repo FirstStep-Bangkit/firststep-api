@@ -454,6 +454,88 @@ class Personality(Resource):
                 return jsonify({'error': 'Data tidak ditemukan'}), 404
         else:
             return jsonify({'error': 'Pengguna tidak memiliki nilai mbti'}), 400
+        
+# Fungsi untuk mengunggah foto profil ke Google Cloud Storage
+def upload_photo_profile(file, filename):
+    bucket = storage_client.bucket(GCS_BUCKET_NAME)
+    blob = bucket.blob(filename)
+    blob.upload_from_file(file)
+    blob.make_public()
+    return blob.public_url
+
+class UploadPhoto(Resource):
+    @token_required
+    def post(self):
+        current_user = get_current_user()
+        # Cek apakah file foto profil tersedia dalam request
+        if 'photo_profile' not in request.files:
+            return jsonify({'error': True, 'message': 'No photo profile found'})
+
+        photo_profile = request.files['photo_profile']
+
+        # Cek apakah file yang diunggah adalah gambar
+        if photo_profile.mimetype not in ['image/jpeg', 'image/png']:
+            return jsonify({'error': True, 'message': 'Invalid photo profile format'})
+
+        # Cek apakah pengguna sudah memiliki foto profil sebelumnya
+        cursor.execute("SELECT photo_profile, update_counter FROM auth_model WHERE username = %s", (current_user.username,))
+        user = cursor.fetchone()
+        if user and user['photo_profile']:
+            # Hapus foto profil sebelumnya di GCS
+            try:
+                bucket = storage_client.bucket(GCS_BUCKET_NAME)
+                previous_update_counter = user['update_counter']
+                previous_extension = user['photo_profile'].split('.')[-1]
+                previous_filename = secure_filename(f"{current_user.username}_{previous_update_counter}.{previous_extension}")
+                blob = bucket.blob(previous_filename)
+                blob.delete()
+            except:
+                pass
+
+        # Generate nama file yang aman untuk foto profil dengan menggunakan username pengguna dan counter update
+        cursor.execute("SELECT update_counter FROM auth_model WHERE username = %s", (current_user.username,))
+        result = cursor.fetchone()
+        update_counter = result['update_counter'] + 1 if result and result['update_counter'] else 1
+        filename = secure_filename(f"{current_user.username}_{update_counter}.jpg")  # Ubah ekstensi file sesuai kebutuhan
+
+        # Upload foto profil ke GCS
+        photo_url = upload_photo_profile(photo_profile, filename)
+
+        # Simpan URL foto profil dan counter update ke database
+        cursor.execute("UPDATE auth_model SET photo_profile = %s, update_counter = %s WHERE username = %s", (photo_url, update_counter, current_user.username))
+        mysql.commit()
+
+        return jsonify({'error': False, 'message': 'Photo profile uploaded', 'photo_url': photo_url})
+    
+class DeletePhoto(Resource):
+    @token_required
+    def delete(self):
+        current_user = get_current_user()
+
+        # Cek apakah pengguna memiliki foto profil
+        if current_user.photo_profile is None:
+            return jsonify({'error': True, 'message': 'User does not have a profile photo'}), 404
+
+        # Menghapus foto profil dari Google Cloud Storage
+        try:
+            # Mendapatkan nama file dari URL foto profil
+            filename = current_user.photo_profile.split('/')[-1]
+
+            # Menghapus foto profil dari Google Cloud Storage
+            bucket = storage_client.bucket(app.config['GCS_BUCKET_NAME'])
+            blob = bucket.blob(filename)
+            blob.delete()
+        except Exception as e:
+            return jsonify({'error': True, 'message': 'Failed to delete profile photo', 'details': str(e)}), 500
+
+        # Menghapus foto profil dari basis data
+        try:
+            cursor.execute("UPDATE auth_model SET photo_profile = NULL WHERE email = %s", (current_user.email,))
+            mysql.commit()
+        except Exception as e:
+            return jsonify({'error': True, 'message': 'Failed to delete profile photo', 'details': str(e)}), 500
+
+        return jsonify({'error': False, 'message': 'Profile photo deleted successfully'})
 
 api.add_resource(RegisterUser, "/api/register", methods=["POST"])
 api.add_resource(LoginUser, "/api/login", methods=["POST"])
@@ -464,6 +546,8 @@ api.add_resource(ChangePassword, "/api/changepassword", methods=["POST"])
 api.add_resource(Predict, "/api/predict")  
 api.add_resource(Question, "/api/questions", methods=["GET"])
 api.add_resource(Personality, "/api/personality", methods=["GET"])
+api.add_resource(UploadPhoto, "/uploadphoto")
+api.add_resource(DeletePhoto, '/deletephoto')
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
