@@ -459,7 +459,7 @@ class Personality(Resource):
         
 # Fungsi untuk mengunggah foto profil ke Google Cloud Storage
 def upload_photo_profile(file, filename):
-    bucket = storage_client.bucket(GCS_BUCKET_NAME)
+    bucket = storage_client.bucket(app.config['GCS_BUCKET_NAME'])
     blob = bucket.blob(filename)
     blob.upload_from_file(file)
     blob.make_public()
@@ -485,7 +485,7 @@ class UploadPhoto(Resource):
         if user and user['photo_profile']:
             # Hapus foto profil sebelumnya di GCS
             try:
-                bucket = storage_client.bucket(GCS_BUCKET_NAME)
+                bucket = storage_client.bucket(app.config['GCS_BUCKET_NAME'])
                 previous_update_counter = user['update_counter']
                 previous_extension = user['photo_profile'].split('.')[-1]
                 previous_filename = secure_filename(f"{current_user.username}_{previous_update_counter}.{previous_extension}")
