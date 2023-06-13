@@ -9,6 +9,14 @@ from functools import wraps
 import numpy as np
 import tensorflow as tf
 
+import requests
+
+from werkzeug.utils import secure_filename
+from google.cloud import storage
+
+from google.oauth2 import service_account
+from google.auth import exceptions
+
 app = Flask(__name__)
 api = Api(app)
 CORS(app)
@@ -20,6 +28,8 @@ MYSQL_USER = os.environ.get('MYSQL_USER')
 MYSQL_PASSWORD = os.environ.get('MYSQL_PASSWORD')
 MYSQL_DB = os.environ.get('MYSQL_DB')
 SECRET_KEY = os.environ.get('SECRET_KEY')
+GCS_BUCKET_NAME = os.environ.get('GCS_BUCKET_NAME')
+SIGNED_URL = os.environ.get('SIGNED_URL')
 
 # Konfigurasi database
 app.config['MYSQL_HOST'] = MYSQL_HOST
@@ -27,6 +37,8 @@ app.config['MYSQL_USER'] = MYSQL_USER
 app.config['MYSQL_PASSWORD'] = MYSQL_PASSWORD
 app.config['MYSQL_DB'] = MYSQL_DB
 app.config['SECRET_KEY'] = SECRET_KEY
+app.config['GCS_BUCKET_NAME'] = GCS_BUCKET_NAME
+app.config['SIGNED_URL'] = SIGNED_URL
 
 # Inisialisasi objek MySQL
 mysql = mysql.connector.connect(
@@ -49,9 +61,12 @@ CREATE TABLE IF NOT EXISTS auth_model (
     password VARCHAR(100) NOT NULL,
     status VARCHAR(50) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    mbti varchar(50)
+    mbti varchar(50),
+    photo_profile VARCHAR(255),
+    update_counter INT
 )
 """
+
 # Commit perubahan ke database
 mysql.commit()
 
@@ -60,7 +75,7 @@ cursor.execute(create_table_query)
 
 # Model database untuk authentication login register
 class AuthModel:
-    def __init__(self, username, frontName, lastName, email, password, status, created_at, mbti):
+    def __init__(self, username, frontName, lastName, email, password, status, created_at, mbti, photo_profile, update_counter):
         self.username = username
         self.frontName = frontName
         self.lastName = lastName
@@ -69,6 +84,8 @@ class AuthModel:
         self.status = status
         self.created_at = created_at
         self.mbti = mbti
+        self.photo_profile = photo_profile
+        self.update_counter = update_counter
 
 # Load the TensorFlow Lite model
 interpreter = tf.lite.Interpreter(model_path='model(1).tflite')
@@ -79,6 +96,21 @@ output_details = interpreter.get_output_details()
 # Define class labels
 class_labels = ['ESTJ', 'ENTJ', 'ESFJ', 'ENFJ', 'ISTJ', 'ISFJ', 'INTJ', 'INFJ', 'ESTP', 'ESFP', 'ENTP', 'ENFP', 'ISTP', 'ISFP', 'INTP', 'INFP']
 
+# Dapatkan signed URL untuk file JSON kredensial di Cloud Storage bucket
+signed_url = app.config['SIGNED_URL']
+
+# Unduh file JSON kredensial menggunakan signed URL
+response = requests.get(signed_url)
+credentials_path = "/tmp/capstone-project-387211-3591687ddf13.json"
+
+with open(credentials_path, "wb") as file:
+    file.write(response.content)
+
+# Membuat objek kredensial dari file JSON
+credentials = service_account.Credentials.from_service_account_file(credentials_path)
+
+# Inisialisasi objek storage_client dengan kredensial yang disediakan
+storage_client = storage.Client(credentials=credentials)
 
 # Decorator untuk kunci endpoint / authentication
 def token_required(f):
@@ -130,7 +162,9 @@ def get_current_user():
                 user['password'],
                 user['status'],
                 user['created_at'],
-                user['mbti']
+                user['mbti'],
+                user['photo_profile'],
+                user['update_counter']
             )
             return current_user
         else:
@@ -222,16 +256,21 @@ class Dashboard(Resource):
     @token_required
     def get(self):
         current_user = get_current_user()
-        
+
         if current_user.frontName and current_user.lastName:
             name = f"{current_user.frontName} {current_user.lastName}"
         elif current_user.frontName:
             name = current_user.frontName
 
         try:
+            if current_user.photo_profile:
+                profile_picture = current_user.photo_profile
+            else:
+                profile_picture = None
+
             dashboard_result = {
                 "name": name,
-                "profilePicture": None
+                "profilePicture": profile_picture
             }
 
             return jsonify({
@@ -250,14 +289,19 @@ class Profile(Resource):
     @token_required
     def get(self):
         current_user = get_current_user()
-        
+
         if current_user.frontName and current_user.lastName:
             name = f"{current_user.frontName} {current_user.lastName}"
         elif current_user.frontName:
             name = current_user.frontName
 
         try:
-            if current_user.mbti:  # Cek apakah pengguna memiliki nilai mbti
+            if current_user.photo_profile:
+                profile_picture = current_user.photo_profile
+            else:
+                profile_picture = None
+
+            if current_user.mbti:
                 mbti = current_user.mbti
             else:
                 mbti = None
@@ -265,9 +309,9 @@ class Profile(Resource):
             profile_result = {
                 "username": current_user.username,
                 "name": name,
-                "profilePicture": None,
+                "profilePicture": profile_picture,
                 "status": current_user.status,
-                "mbti": mbti  # Menggunakan variabel mbti yang ditentukan di atas
+                "mbti": mbti
             }
 
             return jsonify({
