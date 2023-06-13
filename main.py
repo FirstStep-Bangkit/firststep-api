@@ -97,20 +97,22 @@ output_details = interpreter.get_output_details()
 class_labels = ['ESTJ', 'ENTJ', 'ESFJ', 'ENFJ', 'ISTJ', 'ISFJ', 'INTJ', 'INFJ', 'ESTP', 'ESFP', 'ENTP', 'ENFP', 'ISTP', 'ISFP', 'INTP', 'INFP']
 
 # Dapatkan signed URL untuk file JSON kredensial di Cloud Storage bucket
-signed_url = 'https://storage.googleapis.com/firststep-admin/capstone-project-387211-3591687ddf13.json'
+#signed_url = 'https://storage.googleapis.com/firststep-admin/capstone-project-387211-3591687ddf13.json'
 
 # Unduh file JSON kredensial menggunakan signed URL
-response = requests.get(signed_url)
-credentials_path = "/tmp/capstone-project-387211-3591687ddf13.json"
+#response = requests.get(signed_url)
+#credentials_path = "/tmp/capstone-project-387211-3591687ddf13.json"
 
-with open(credentials_path, "wb") as file:
-    file.write(response.content)
+#with open(credentials_path, "wb") as file:
+ #   file.write(response.content)
 
 # Membuat objek kredensial dari file JSON
-credentials = service_account.Credentials.from_service_account_file(credentials_path)
+#credentials = service_account.Credentials.from_service_account_file(credentials_path)
 
 # Inisialisasi objek storage_client dengan kredensial yang disediakan
-storage_client = storage.Client(credentials=credentials)
+#storage_client = storage.Client(credentials=credentials)
+
+storage_client = storage.Client()
 
 # Decorator untuk kunci endpoint / authentication
 def token_required(f):
@@ -546,8 +548,8 @@ api.add_resource(ChangePassword, "/api/changepassword", methods=["POST"])
 api.add_resource(Predict, "/api/predict")  
 api.add_resource(Question, "/api/questions", methods=["GET"])
 api.add_resource(Personality, "/api/personality", methods=["GET"])
-api.add_resource(UploadPhoto, "/uploadphoto")
-api.add_resource(DeletePhoto, '/deletephoto')
+api.add_resource(UploadPhoto, "/api/uploadphoto")
+api.add_resource(DeletePhoto, '/api/deletephoto')
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
