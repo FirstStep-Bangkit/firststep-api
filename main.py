@@ -8,12 +8,9 @@ import datetime
 from functools import wraps
 import numpy as np
 import tensorflow as tf
-
 import requests
-
 from werkzeug.utils import secure_filename
 from google.cloud import storage
-
 from google.oauth2 import service_account
 from google.auth import exceptions
 
@@ -22,14 +19,12 @@ api = Api(app)
 CORS(app)
 
 # Mengambil credential
-
 MYSQL_HOST = os.environ.get('MYSQL_HOST')
 MYSQL_USER = os.environ.get('MYSQL_USER')
 MYSQL_PASSWORD = os.environ.get('MYSQL_PASSWORD')
 MYSQL_DB = os.environ.get('MYSQL_DB')
 SECRET_KEY = os.environ.get('SECRET_KEY')
 GCS_BUCKET_NAME = os.environ.get('GCS_BUCKET_NAME')
-#SIGNED_URL = os.environ.get('SIGNED_URL')
 
 # Konfigurasi database
 app.config['MYSQL_HOST'] = MYSQL_HOST
@@ -38,7 +33,6 @@ app.config['MYSQL_PASSWORD'] = MYSQL_PASSWORD
 app.config['MYSQL_DB'] = MYSQL_DB
 app.config['SECRET_KEY'] = SECRET_KEY
 app.config['GCS_BUCKET_NAME'] = GCS_BUCKET_NAME
-#app.config['SIGNED_URL'] = SIGNED_URL
 
 # Inisialisasi objek MySQL
 mysql = mysql.connector.connect(
@@ -95,22 +89,6 @@ output_details = interpreter.get_output_details()
 
 # Define class labels
 class_labels = ['ESTJ', 'ENTJ', 'ESFJ', 'ENFJ', 'ISTJ', 'ISFJ', 'INTJ', 'INFJ', 'ESTP', 'ESFP', 'ENTP', 'ENFP', 'ISTP', 'ISFP', 'INTP', 'INFP']
-
-# Dapatkan signed URL untuk file JSON kredensial di Cloud Storage bucket
-#signed_url = 'https://storage.googleapis.com/firststep-admin/capstone-project-387211-3591687ddf13.json'
-
-# Unduh file JSON kredensial menggunakan signed URL
-#response = requests.get(signed_url)
-#credentials_path = "/tmp/capstone-project-387211-3591687ddf13.json"
-
-#with open(credentials_path, "wb") as file:
- #   file.write(response.content)
-
-# Membuat objek kredensial dari file JSON
-#credentials = service_account.Credentials.from_service_account_file(credentials_path)
-
-# Inisialisasi objek storage_client dengan kredensial yang disediakan
-#storage_client = storage.Client(credentials=credentials)
 
 storage_client = storage.Client()
 
@@ -188,7 +166,8 @@ class RegisterUser(Resource):
             if user:
                 return make_response(jsonify({
                     "error": True,
-                    "msg": "Email sudah digunakan"}), 400)
+                    "msg": "Email sudah digunakan"
+                }), 400)
 
             cursor.execute("SELECT COUNT(*) FROM auth_model")
             result = cursor.fetchone()
@@ -197,7 +176,6 @@ class RegisterUser(Resource):
                 user_count = result['COUNT(*)']
             else:
                 user_count = 0
-
 
             default_status = "User"
             username = f"{default_status}{user_count+1}{datetime.datetime.now().strftime('%Y%m%d')}"
@@ -209,11 +187,13 @@ class RegisterUser(Resource):
 
             return make_response(jsonify({
                 "error": False,
-                "msg": "Registrasi Berhasil"}), 200)
+                "msg": "Registrasi Berhasil"
+            }), 200)
 
         return make_response(jsonify({
             "error": True,
-            "msg": "Email atau Password tidak boleh kosong"}), 400)
+            "msg": "Email atau Password tidak boleh kosong"
+        }), 400)
 
 class LoginUser(Resource):
     def post(self):
@@ -253,7 +233,6 @@ class LoginUser(Resource):
             "msg": "Login gagal, silahkan coba lagi !!!"
         })
 
-
 class Dashboard(Resource):
     @token_required
     def get(self):
@@ -285,7 +264,6 @@ class Dashboard(Resource):
                 "error": True,
                 "msg": "dashboard gagal"
             })
-
 
 class Profile(Resource):
     @token_required
@@ -327,7 +305,6 @@ class Profile(Resource):
                 "msg": "Profile gagal"
             })
 
-
 class ChangePassword(Resource):
     @token_required
     def post(self):
@@ -338,7 +315,8 @@ class ChangePassword(Resource):
         if not dataCurrentPassword or not dataNewPassword:
             return make_response(jsonify({
                 "error": True,
-                "msg": "Password tidak boleh kosong"}), 400)
+                "msg": "Password tidak boleh kosong"
+            }), 400)
 
         # Periksa apakah password saat ini sesuai dengan yang tersimpan dalam basis data
         cursor.execute("SELECT * FROM auth_model WHERE email = %s", (current_user.email,))
@@ -351,11 +329,13 @@ class ChangePassword(Resource):
 
             return make_response(jsonify({
                 "error": False,
-                "msg": "Password berhasil diubah"}), 200)
+                "msg": "Password berhasil diubah"
+            }), 200)
         else:
             return make_response(jsonify({
                 "error": True,
-                "msg": "Password saat ini tidak valid"}), 401)
+                "msg": "Password saat ini tidak valid"
+            }), 401)
 
 class DeleteUser(Resource):
     @token_required
@@ -373,46 +353,47 @@ class DeleteUser(Resource):
 
         return jsonify({
             "error": True,
-            "message": "Anda tidak memiliki izin untuk menghapus pengguna ini"})
+            "message": "Anda tidak memiliki izin untuk menghapus pengguna ini"
+            })
 
 class Predict(Resource):
     @token_required
     def post(self):
         current_user = get_current_user()
         try:
-            # Get the input data
+            # Get input data
             data = request.json
             input_data = np.array(data['input']).astype(np.float32)  # Convert to FLOAT32
 
-            # Check if input length matches the expected length
+            # Memastikan jawaban berisi 60
             if len(input_data) != 60:
                 return jsonify({'error': 'Jawaban harus berisi 60'}), 400
 
             # Reshape input data
             input_data = np.reshape(input_data, (1, 60))
 
-            # Set the input tensor
+            # Set input tensor
             interpreter.set_tensor(input_details[0]['index'], input_data)
 
-            # Run inference
+            # Menjalankan inference
             interpreter.invoke()
 
-            # Get the output tensor
+            # Get output tensor
             output_data = interpreter.get_tensor(output_details[0]['index'])
             predicted_class = int(np.argmax(output_data))  # Convert to int
 
-            # Get the predicted label
+            # Get predicted label
             predicted_label = class_labels[predicted_class]
 
-            # Update the current user's MBTI
+            # Update current user MBTI
             current_user = get_current_user()
             current_user.mbti = predicted_label
 
-            # Save the predicted label to auth_model table
+            # Menyimpan predicted label ke table auth_model
             cursor.execute("UPDATE auth_model SET mbti = %s WHERE email = %s", (predicted_label, current_user.email))
             mysql.commit()
 
-            # Prepare the response
+            # Menyimpan response
             response = {
                 'predicted_class': predicted_class,
                 'predicted_label': predicted_label
@@ -471,13 +452,13 @@ class UploadPhoto(Resource):
         current_user = get_current_user()
         # Cek apakah file foto profil tersedia dalam request
         if 'photo_profile' not in request.files:
-            return jsonify({'error': True, 'message': 'No photo profile found'})
+            return jsonify({'error': True, 'msg': 'Tidak memiliki foto profile'})
 
         photo_profile = request.files['photo_profile']
 
         # Cek apakah file yang diunggah adalah gambar
         if photo_profile.mimetype not in ['image/jpeg', 'image/png']:
-            return jsonify({'error': True, 'message': 'Invalid photo profile format'})
+            return jsonify({'error': True, 'message': 'Invalid photo profile format (jpg/png)'})
 
         # Cek apakah pengguna sudah memiliki foto profil sebelumnya
         cursor.execute("SELECT photo_profile, update_counter FROM auth_model WHERE username = %s", (current_user.username,))
@@ -507,7 +488,11 @@ class UploadPhoto(Resource):
         cursor.execute("UPDATE auth_model SET photo_profile = %s, update_counter = %s WHERE username = %s", (photo_url, update_counter, current_user.username))
         mysql.commit()
 
-        return jsonify({'error': False, 'message': 'Photo profile uploaded', 'photo_url': photo_url})
+        return jsonify({
+            'error': False,
+            'message': 'Photo profile berhasil di-upload',
+            'photo_url': photo_url
+        })
     
 class DeletePhoto(Resource):
     @token_required
@@ -516,7 +501,10 @@ class DeletePhoto(Resource):
 
         # Cek apakah pengguna memiliki foto profil
         if current_user.photo_profile is None:
-            return jsonify({'error': True, 'message': 'User does not have a profile photo'}), 404
+            return jsonify({
+                'error': True,
+                'message': 'User saat ini tidak mempunyai foto profil'
+            }), 404
 
         # Menghapus foto profil dari Google Cloud Storage
         try:
@@ -528,16 +516,27 @@ class DeletePhoto(Resource):
             blob = bucket.blob(filename)
             blob.delete()
         except Exception as e:
-            return jsonify({'error': True, 'message': 'Failed to delete profile photo', 'details': str(e)}), 500
+            return jsonify({
+                'error': True,
+                'message': 'Gagal menghapus foto profil',
+                'details': str(e)
+            }), 500
 
         # Menghapus foto profil dari basis data
         try:
             cursor.execute("UPDATE auth_model SET photo_profile = NULL WHERE email = %s", (current_user.email,))
             mysql.commit()
         except Exception as e:
-            return jsonify({'error': True, 'message': 'Failed to delete profile photo', 'details': str(e)}), 500
+            return jsonify({
+                'error': True,
+                'message': 'Gagal menghapus foto profil',
+                'details': str(e)
+            }), 500
 
-        return jsonify({'error': False, 'message': 'Profile photo deleted successfully'})
+        return jsonify({
+            'error': False,
+            'message': 'User saat ini tidak mempunyai foto profil'
+        })
 
 api.add_resource(RegisterUser, "/api/register", methods=["POST"])
 api.add_resource(LoginUser, "/api/login", methods=["POST"])
