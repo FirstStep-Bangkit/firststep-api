@@ -4,17 +4,19 @@ This repository contains a Flask-based RESTful API server that offers various en
 
 ## Requirements
 To run the code in this repository, you need to have the following dependencies installed:
-• Python 3.x
-• Flask
-• Flask-RESTful
-• Flask-CORS
-• mysql-connector-python
-• PyJWT
-• NumPy
-• TensorFlow
-• requests
-• Werkzeug
-• google-cloud-storage
+```
+Python 3.x
+Flask
+Flask-RESTful
+Flask-CORS
+mysql-connector-python
+PyJWT
+NumPy
+TensorFlow
+requests
+Werkzeug
+google-cloud-storage
+```
 
 You can install the required dependencies using the following command:
 
@@ -24,10 +26,15 @@ You can install the required dependencies using the following command:
 Before running the server, you need to configure the following environment variables:
 
 `MYSQL_HOST`: The hostname of the MySQL database.
+
 `MYSQL_USER`: The username for connecting to the MySQL database.
+
 `MYSQL_PASSWORD`: The password for connecting to the MySQL database.
+
 `MYSQL_DB`: The name of the MySQL database.
+
 `SECRET_KEY`: A secret key used for JWT token encoding and decoding.
+
 `GCS_BUCKET_NAME`: The name of the Google Cloud Storage bucket for storing user profile photos.
 
 Make sure to set these environment variables before starting the server.
@@ -81,15 +88,25 @@ The server will start running on `http://localhost:5000`.
 The following API endpoints are available:
 
 • `POST /api/register`: Register a new user with the provided information.
+
 • `POST /api/login`: Authenticate a user and generate a JWT token for further requests.
+
 • `GET /api/dashboard`: Get the current user's dashboard information (requires authentication).
+
 • `GET /api/profile`: Get the current user's profile information (requires authentication).
+
 • `POST /api/changepassword`: Change the current user's password (requires authentication).
+
 • `DELETE /api/users/{username}`: Delete a user (requires authentication and matching username).
+
 • `POST /api/predict`: Predict the user's personality type based on input data (requires authentication).
+
 • `GET /api/questions`: Get the list of questions for personality prediction (requires authentication).
+
 • `GET /api/personality`: Get the personality information for the current user's predicted type (requires authentication).
+
 • `POST /api/uploadphoto`: Upload a profile photo for the current user (requires authentication).
+
 • `DELETE /api/deletephoto`: Delete a profile photo for the current user (requires authentication)
 
 Please refer to the code for detailed information on the request payloads and responses for each endpoint.
