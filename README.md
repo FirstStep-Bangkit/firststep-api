@@ -80,16 +80,17 @@ The server will start running on `http://localhost:5000`.
 ## API Endpoints
 The following API endpoints are available:
 
-• `POST /register`: Register a new user with the provided information.
-• `POST /login`: Authenticate a user and generate a JWT token for further requests.
-• `GET /dashboard`: Get the current user's dashboard information (requires authentication).
-• `GET /profile`: Get the current user's profile information (requires authentication).
-• `POST /changepassword`: Change the current user's password (requires authentication).
-• `DELETE /users/{username}`: Delete a user (requires authentication and matching username).
-• `POST /predict`: Predict the user's personality type based on input data (requires authentication).
-• `GET /questions`: Get the list of questions for personality prediction (requires authentication).
-• `GET /personality`: Get the personality information for the current user's predicted type (requires authentication).
-• `POST /uploadphoto`: Upload a profile photo for the current user (requires authentication).
+• `POST /api/register`: Register a new user with the provided information.
+• `POST /api/login`: Authenticate a user and generate a JWT token for further requests.
+• `GET /api/dashboard`: Get the current user's dashboard information (requires authentication).
+• `GET /api/profile`: Get the current user's profile information (requires authentication).
+• `POST /api/changepassword`: Change the current user's password (requires authentication).
+• `DELETE /api/users/{username}`: Delete a user (requires authentication and matching username).
+• `POST /api/predict`: Predict the user's personality type based on input data (requires authentication).
+• `GET /api/questions`: Get the list of questions for personality prediction (requires authentication).
+• `GET /api/personality`: Get the personality information for the current user's predicted type (requires authentication).
+• `POST /api/uploadphoto`: Upload a profile photo for the current user (requires authentication).
+• `DELETE /api/deletephoto`: Delete a profile photo for the current user (requires authentication)
 
 Please refer to the code for detailed information on the request payloads and responses for each endpoint.
 
