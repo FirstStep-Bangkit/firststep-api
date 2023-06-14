@@ -348,12 +348,12 @@ class DeleteUser(Resource):
 
             return jsonify({
                 "error": False,
-                "message": "User berhasil dihapus"
+                "msg": "User berhasil dihapus"
                 })
 
         return jsonify({
             "error": True,
-            "message": "Anda tidak memiliki izin untuk menghapus pengguna ini"
+            "msg": "Anda tidak memiliki izin untuk menghapus pengguna ini"
             })
 
 class Predict(Resource):
@@ -452,13 +452,19 @@ class UploadPhoto(Resource):
         current_user = get_current_user()
         # Cek apakah file foto profil tersedia dalam request
         if 'photo_profile' not in request.files:
-            return jsonify({'error': True, 'msg': 'Tidak memiliki foto profile'})
+            return jsonify({
+                'error': True,
+                'msg': 'Tidak memiliki foto profile'
+            })
 
         photo_profile = request.files['photo_profile']
 
         # Cek apakah file yang diunggah adalah gambar
         if photo_profile.mimetype not in ['image/jpeg', 'image/png']:
-            return jsonify({'error': True, 'message': 'Invalid photo profile format (jpg/png)'})
+            return jsonify({
+                'error': True,
+                'msg': 'Invalid photo profile format (jpg/png)'
+            })
 
         # Cek apakah pengguna sudah memiliki foto profil sebelumnya
         cursor.execute("SELECT photo_profile, update_counter FROM auth_model WHERE username = %s", (current_user.username,))
@@ -490,7 +496,7 @@ class UploadPhoto(Resource):
 
         return jsonify({
             'error': False,
-            'message': 'Photo profile berhasil di-upload',
+            'msg': 'Photo profile berhasil di-upload',
             'photo_url': photo_url
         })
     
@@ -503,7 +509,7 @@ class DeletePhoto(Resource):
         if current_user.photo_profile is None:
             return jsonify({
                 'error': True,
-                'message': 'User saat ini tidak mempunyai foto profil'
+                'msg': 'User saat ini tidak mempunyai foto profil'
             }), 404
 
         # Menghapus foto profil dari Google Cloud Storage
@@ -518,7 +524,7 @@ class DeletePhoto(Resource):
         except Exception as e:
             return jsonify({
                 'error': True,
-                'message': 'Gagal menghapus foto profil',
+                'msg': 'Gagal menghapus foto profil',
                 'details': str(e)
             }), 500
 
@@ -529,13 +535,13 @@ class DeletePhoto(Resource):
         except Exception as e:
             return jsonify({
                 'error': True,
-                'message': 'Gagal menghapus foto profil',
+                'msg': 'Gagal menghapus foto profil',
                 'details': str(e)
             }), 500
 
         return jsonify({
             'error': False,
-            'message': 'Foto profil berhasil dihapus'
+            'msg': 'Foto profil berhasil dihapus'
         })
 
 api.add_resource(RegisterUser, "/api/register", methods=["POST"])

@@ -133,4 +133,210 @@ ENV PORT 5000
 CMD exec gunicorn --bind :$PORT main:app --workers 1 --threads 1
 ```
 
+## API Documentation
+Here is the API documentation:
+### Register
+```
+• URL
+    ○ /api/register
+• Method
+    ○ POST
+• Request Body
+    ○ frontName as string
+    ○ lastName as string
+    ○ email as string
+    ○ password as string
+• Response
+    {
+        "error": false,
+        "msg": "Registrasi Berhasil"
+    }
+```
+
+### Login
+```
+• URL
+    ○ /api/login
+• Method
+    ○ POST
+• Request Body
+    ○ email as string
+    ○ password as string
+• Response
+    {
+        "error": false,
+        "loginResult": {
+            "email": "frnspry14@gmail.com",
+            "name": "Fransiscus Prayoga",
+            "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImZybnNwcnkxNEBnbWFpbC5jb20ifQ.IIMRuObKSWohBZ4x7FgBzYbNH2KD-BTIUXcKU6qLtW4",
+            "username": "User1820230614"
+        },
+        "msg": "success"
+    }
+```
+
+### Delete User
+```
+• URL
+    ○ /api/deleteuser/<string:username>
+• Method
+    ○ DELETE
+• Headers
+    ○ Authorization : Bearer <token>
+• Response
+    {
+        "error": false,
+        "msg": "User berhasil dihapus"
+    }
+```
+
+### Change Password
+```
+• URL
+    ○ /api/changepassword
+• Method
+    ○ POST
+• Request Body
+    ○ currrentPassword as string
+    ○ newPassword as string
+• Headers
+    ○ Authorization : Bearer <token>
+• Response
+    {
+        "error": false,
+        "msg": "Password berhasil diubah"
+    }
+```
+
+### Predict
+```
+• URL
+    ○ /api/predict
+• Method
+    ○ POST
+• Request Body
+    ○ input as array[int]
+      example : 
+      {
+        "input": [0, 0, 1, 2, -1, 2, 1, 0, 1, 0, 0, 0, 3, 1, -1 , 0, 0, 2, -1, 2, 0, 0, 0, 0, 3, 1, -2, 0, -3, -1, 1, 0, -1, 0, -1, 3, 1, 2, 0, 1, 1, -2, -1, -1, -1, 0, 0, 0, -1, -1, 0, 1, 0, 0, 2, 0, 0, 1, 2, 1]
+      }
+• Headers
+    ○ Authorization : Bearer <token>
+    ○ Content-Type : appplication/json
+• Response
+    {
+        "predicted_class": 7,
+        "predicted_label": "INFJ"
+    }
+```
+
+### Question
+```
+• URL
+    ○ /api/questions
+• Method
+    ○ GET
+• Headers
+    ○ Authorization : Bearer <token>
+• Response
+    {
+        "error": false,
+        "msg": "success",
+        "questions": [
+            "questions appear here"
+        ]
+    }
+```
+
+### Personality
+```
+• URL
+    ○ /api/personality
+• Method
+    ○ GET
+• Headers
+    ○ Authorization : Bearer <token>
+• Response
+    {
+        "acronym": "Introversion Intuition Feeling Judging",
+        "description": "INFJ adalah tipe yang penuh empati, visioner, dan terdorong oleh nilai-nilai. Anda cenderung peka terhadap kebutuhan orang lain dan berdedikasi untuk membantu meningkatkan dunia.",
+        "job": "Profesi yang mungkin cocok sebagai konsultan, pengembang organisasi, atau penulis.",
+        "mbti": "INFJ"
+    }
+```
+
+### Upload Photo
+```
+• URL
+    ○ /api/uploadphoto
+• Method
+    ○ POST
+• Request Body
+    ○ photo_profile as .jpg/png
+• Headers
+    ○ Authorization : Bearer <token>
+• Response
+    {
+        "error": false,
+        "msg": "Photo profile berhasil di-upload",
+        "photo_url": "your/url/User1820230614_1.jpg"
+    }
+```
+
+### Delete Photo
+```
+• URL
+    ○ /api/deletephoto
+• Method
+    ○ DELETE
+• Headers
+    ○ Authorization : Bearer <token>
+• Response
+    {
+        "error": false,
+        "msg": "Foto profil berhasil dihapus”
+    }
+```
+
+### Dashboard
+```
+• URL
+    ○ /api/dashboard
+• Method
+    ○ GET
+• Headers
+    ○ Authorization : Bearer <token>
+• Response
+    {
+        "dashboardResult": {
+            "name": "Fransiscus Prayoga",
+            "profilePicture": "your/url/User1820230614_1.jpg"
+        },
+        "error": false,
+        "msg": "dashboard sukses"
+    }
+```
+
+### Profile
+```
+• URL
+    ○ /api/profile
+• Method
+    ○ GET
+• Headers
+    ○ Authorization : Bearer <token>
+• Response
+    {
+        "error": false,
+        "msg": "Profile berhasil",
+        "profileResult": {
+            "mbti": "INFJ",
+            "name": "Fransiscus Prayoga",
+            "profilePicture": "your/url/User1820230614_1.jpg",
+            "status": "User",
+            "username": "User1820230614"
+        }
+    }
+```
+
 This README provides a brief overview of the repository and the functionality of the Flask API server. For more detailed information, please refer to the code comments.
