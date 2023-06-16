@@ -45,6 +45,7 @@ The server requires a MySQL database to store user authentication information. Y
 ### auth_model
 ```
 CREATE TABLE IF NOT EXISTS auth_model (
+    id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL,
     frontName VARCHAR(50),
     lastName VARCHAR(50),

@@ -48,6 +48,7 @@ cursor = mysql.cursor(dictionary=True)
 # Perintah untuk membuat tabel auth_model
 create_table_query = """
 CREATE TABLE IF NOT EXISTS auth_model (
+    id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL,
     frontName VARCHAR(50),
     lastName VARCHAR(50),
@@ -69,7 +70,8 @@ cursor.execute(create_table_query)
 
 # Model database untuk authentication login register
 class AuthModel:
-    def __init__(self, username, frontName, lastName, email, password, status, created_at, mbti, photo_profile, update_counter):
+    def __init__(self, id, username, frontName, lastName, email, password, status, created_at, mbti, photo_profile, update_counter):
+        self.id = id
         self.username = username
         self.frontName = frontName
         self.lastName = lastName
@@ -135,6 +137,7 @@ def get_current_user():
 
         if user:
             current_user = AuthModel(
+                user['id'],
                 user['username'],
                 user['frontName'],
                 user['lastName'],
@@ -169,16 +172,17 @@ class RegisterUser(Resource):
                     "msg": "Email sudah digunakan"
                 }), 400)
 
-            cursor.execute("SELECT COUNT(*) FROM auth_model")
+            cursor.execute("SELECT MAX(id) FROM auth_model")
             result = cursor.fetchone()
+            user_count = result['MAX(id)']
 
-            if result and len(result) > 0:
-                user_count = result['COUNT(*)']
+            if user_count is not None:
+                user_count = int(user_count)
             else:
                 user_count = 0
 
             default_status = "User"
-            username = f"{default_status}{user_count+1}{datetime.datetime.now().strftime('%Y%m%d')}"
+            username = f"{default_status}{user_count + 1}{datetime.datetime.now().strftime('%Y%m%d')}"
 
             created_at = datetime.datetime.utcnow()
 
